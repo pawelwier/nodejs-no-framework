@@ -10,7 +10,16 @@ const sampleValue = 'server? client?';
 const sampleEmitter = new EventEmitter();
 sampleEmitter.on('event', () => console.log(sampleValue));
 
-const operationSystem = os.platform();
+const operationSystem = {
+    platform: os.platform(),
+    homedir: os.homedir(),
+    release: os.release()    
+}
+
+const displayOpDetails = () => {
+    return `Platform: ${operationSystem.platform}, home directory: ${operationSystem.homedir.replace(/\\/g  ,'\\\\')}, release: ${operationSystem.release}`
+}
+
 const fileText = fs.readFileSync((__dirname, 'new_file.txt'), { encoding: 'utf-8' });
 
 const sampleList = [
@@ -32,23 +41,34 @@ const sayBye = (name) => {
     `
 };
 
-const fullScript = `
+const strigifyMethod = (methodVar) => {
+    return `${methodVar}`
+};
+
+const showSelectedUsername = () => {
+    const userNumberInput = document.getElementById('userNumber').value;
+    fetch(userApiLink)
+        .then(response => response.json())
+        .then(result => {
+            document.querySelector('.user').innerHTML = result.filter(user => user.id == userNumberInput)[0].name;
+        });
+}
+
+let fullScript = `
     const userApiLink = 'https://jsonplaceholder.typicode.com/users';
     const operationSystem = "${operationSystem}";
     const fileText = "${fileText}";
-    const logText = () => {console.log(123)}
-    const showSelectedUsername = () => {
+    const showSelectedUsername = ${strigifyMethod(showSelectedUsername)}
+    const osDetails = "${displayOpDetails()}";
+    document.querySelector('.op').innerHTML = osDetails;
+`
+fullScript += `
+    const logText = () => {
         console.log("${sampleValue}");
         console.log("${fileText}");
-        console.log(operationSystem);
-        const userNumberInput = document.getElementById('userNumber').value;
-        fetch(userApiLink)
-            .then(response => response.json())
-            .then(result => {
-                document.querySelector('.user').innerHTML = result.filter(user => user.id == userNumberInput)[0].name;
-            });
     }
-`
+`;
+
 const selectUserButton = buttonElement('showSelectedUsername()', 'Choose');
 const consoleLogButton = buttonElement('logText()', 'Log');
 
@@ -83,12 +103,14 @@ const renderArray = [
 ];
 
 const renderFunction = (renderArray) => {
+    console.log(909)
     return `
         ${renderArray.map(element => `<div class="${element.class}" style="${element.style}">${
             element.render}</div>`)
                 .join('')
                 .toString()
         }
+        <div class="op"></div>
         <script>${fullScript}</script>
     `
 }
